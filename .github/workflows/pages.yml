@@ -1,0 +1,32 @@
+name: Deploy GitHub Pages
+on:
+  push:
+    branches: [main]
+    paths: [site.zip, .github/workflows/pages.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Unpack the static site
+        run: |
+          unzip -q site.zip -d site
+          test -s site/index.html
+          test -s site/toolbox/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: publish
+        uses: actions/deploy-pages@v4
